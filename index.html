@@ -1,0 +1,755 @@
+html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Ultimate Companion App v4</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a26; color: #f1f1f7;
+            margin: 0; padding: 0; display: block;
+        }
+        
+        .app-container { display: table; width: 100%; border-collapse: collapse; min-height: 100vh; }
+        .sidebar { display: table-cell; width: 260px; background-color: #11111a; vertical-align: top; padding: 20px 0; border-right: 2px solid #2a2a40; }
+        .main-content { display: table-cell; vertical-align: top; padding: 30px; background-color: #1a1a26; position: relative; }
+        
+        .brand { padding: 0 20px 20px 20px; border-bottom: 1px solid #2a2a40; margin-bottom: 20px; }
+        .brand h2 { margin: 0; color: #4CAF50; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        .brand p { margin: 5px 0 0 0; font-size: 11px; color: #8a8a9e; text-transform: uppercase; }
+        
+        .nav-menu { list-style: none; padding: 0; margin: 0; }
+        .nav-item { padding: 14px 20px; cursor: pointer; font-weight: 600; color: #a0a0b0; transition: all 0.2s; display: flex; align-items: center; gap: 12px; border-left: 4px solid transparent; }
+        .nav-item:hover { background-color: #1e1e2f; color: #ffffff; }
+        .nav-item.active { background-color: #242438; color: #ffffff; border-left: 4px solid #4CAF50; }
+        
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
+        
+        h1 { margin-top: 0; margin-bottom: 10px; font-size: 28px; font-weight: 700; }
+        .subtitle { color: #8a8a9e; margin-bottom: 30px; font-size: 14px; }
+        
+        .grid-2 { display: table; width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 20px 0; margin: 0 -20px; }
+        .col { display: table-cell; vertical-align: top; }
+        
+        .card { background: #222235; border-radius: 12px; padding: 24px; margin-bottom: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border: 1px solid #2d2d44; }
+        .card-header { margin-top: 0; margin-bottom: 20px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #2d2d44; padding-bottom: 12px; }
+        
+        .border-master { border-top: 4px solid #E91E63; }
+        .border-market { border-top: 4px solid #2196F3; }
+        .border-crypto { border-top: 4px solid #FF9800; }
+        .border-economy { border-top: 4px solid #9C27B0; }
+        .border-bank { border-top: 4px solid #4CAF50; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-size: 13px; color: #a0a0b0; font-weight: 500; }
+        input, select { width: 100%; padding: 12px; background-color: #161622; border: 1px solid #3d3d5c; border-radius: 6px; color: #fff; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #4CAF50; }
+        
+        button { padding: 12px 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; border-radius: 6px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background-color: #4CAF50; color: white; }
+        .btn-primary:hover { background-color: #43a047; }
+        .btn-secondary { background-color: #3d3d5c; color: white; }
+        .btn-secondary:hover { background-color: #4d4d75; }
+        .btn-danger { background-color: #f44336; color: white; }
+        .btn-danger:hover { background-color: #e53935; }
+        .btn-master { background-color: #E91E63; color: white; font-size: 18px; padding: 20px; width: 100%; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4); }
+        .btn-master:hover { background-color: #C2185B; transform: translateY(-2px); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 4px; }
+        
+        .metric-container { display: table; width: 100%; margin-bottom: 20px; }
+        .metric-box { display: table-cell; text-align: center; padding: 15px; background: #1c1c2b; border-radius: 8px; }
+        .metric-val { font-size: 28px; font-weight: 700; margin-bottom: 5px; }
+        .metric-lbl { font-size: 12px; color: #8a8a9e; text-transform: uppercase; }
+        
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+        .badge-green { background-color: rgba(76, 175, 80, 0.2); color: #4CAF50; }
+        .badge-red { background-color: rgba(244, 67, 54, 0.2); color: #f44336; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #2d2d44; }
+        th { background-color: #1c1c2b; color: #a0a0b0; font-size: 12px; text-transform: uppercase; }
+        tr:hover td { background-color: #242438; }
+        
+        .flex-actions { display: flex; gap: 5px; }
+        .text-right { text-align: right; }
+        
+        .player-summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
+        .summary-card { background: #222235; border-radius: 12px; border: 1px solid #2d2d44; padding: 20px; }
+        .summary-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d44; padding-bottom: 10px; margin-bottom: 15px; }
+        .summary-title { margin: 0; font-size: 18px; color: #fff; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .summary-lbl { color: #8a8a9e; }
+        .summary-val { font-weight: 600; }
+        
+        .log-entry { background: #1c1c2b; border-left: 4px solid #E91E63; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; }
+        .log-entry h3 { margin: 0 0 10px 0; font-size: 16px; color: #fff; }
+        .log-entry ul { margin: 0; padding-left: 20px; font-size: 14px; color: #d0d0e0; line-height: 1.6; }
+        .log-entry li { margin-bottom: 5px; }
+        .alert-disaster { color: #f44336; font-weight: bold; }
+        .alert-econ { color: #FF9800; font-weight: bold; }
+        .alert-bank { color: #4CAF50; }
+
+        .property-group-title { margin: 25px 0 10px 0; font-size: 18px; border-bottom: 2px solid #3d3d5c; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .property-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .prop-card { background: #1f1f30; border: 1px solid #2d2d44; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .prop-banner { height: 25px; padding: 4px 10px; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); text-align: center; }
+        .prop-body { padding: 12px; }
+        .prop-name { font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #fff; }
+        .prop-meta { font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; border-bottom: 1px dashed #2d2d44; padding-bottom: 4px; }
+        .prop-select { background: #161622; border: 1px solid #3d3d5c; color: #fff; font-size: 12px; padding: 4px; border-radius: 4px; width: 100%; margin-top: 4px; }
+        .prop-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; }
+        .prop-insurance-toggle { background: rgba(0,188,212,0.1); border: 1px solid #00BCD4; color: #00BCD4; border-radius: 4px; padding: 3px 6px; font-size: 11px; cursor: pointer; text-align: center; font-weight: bold; }
+        .prop-insurance-toggle.active { background: #00BCD4; color: #fff; }
+        .house-dots { display: flex; gap: 4px; margin-top: 4px; }
+        .dot { width: 10px; height: 10px; border-radius: 5px; background: #555; }
+        .dot.green-h { background: #4CAF50; border-radius: 2px; }
+        .dot.red-ht { background: #f44336; border-radius: 2px; width: 22px; }
+
+        .property-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin: 2px; color: #fff; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); }
+
+        /* RECAP REPORT MODAL SCREENS */
+        #game-over-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11,11,18,0.95); z-index: 9999; overflow-y: auto; padding: 40px 20px; }
+        .recap-container { max-width: 900px; margin: 0 auto; background: #222235; border: 2px solid #4CAF50; border-radius: 16px; padding: 40px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+        .recap-header { text-align: center; border-bottom: 2px dashed #3d3d5c; padding-bottom: 25px; margin-bottom: 30px; }
+        .recap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-bottom: 35px; }
+        .recap-card { background: #161622; border-radius: 10px; padding: 20px; border-left: 4px solid #4CAF50; }
+        .recap-card.negative-yield { border-left-color: #f44336; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="brand">
+                <h2>🎩 Monopoly OS</h2>
+                <p>Ultimate Expansion Pack</p>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" onclick="switchTab('tab-master')">🕹️ Master Control</li>
+                <li class="nav-item" onclick="switchTab('tab-setup')">👥 Player Roster</li>
+                <li class="nav-item" onclick="switchTab('tab-board')">🗺️ Board Properties</li>
+                <li class="nav-item" onclick="switchTab('tab-market')">📈 Stock & Crypto</li>
+                <li class="nav-item" onclick="switchTab('tab-economy')">⚖️ Economy Matrix</li>
+                <li class="nav-item" onclick="switchTab('tab-centralbank')">🏦 Central Bank</li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="tab-master" class="tab-view active">
+                <h1>🕹️ Game Director Dashboard</h1>
+                <div class="subtitle">Press the button below once every orbit of the board. This automates ALL systems simultaneously, saving the Banker time and calculating all natural market probabilities.</div>
+                
+                <div class="card border-master">
+                    <button class="btn-master" onclick="executeMasterRound()">⏳ End Turn / Roll Global Game Events</button>
+                    <p style="text-align: center; color: #8a8a9e; font-size: 13px; margin-top: 15px;">
+                        Markets: 100% | Economy Shift: 20% | Disaster Strike: 10% | Property Insurance Billing: Auto
+                    </p>
+                </div>
+
+                <div class="card" style="border-top: 4px solid #f44336;">
+                    <div class="card-header">🏁 Session Terminus</div>
+                    <p style="font-size: 13px; color: #a0a0b0; margin-top: 0; margin-bottom: 15px;">Ready to call the game? Pressing this will stop the simulations, assess structural liquid asset sheets, run total asset worth histories, and generate a final scoreboard ledger.</p>
+                    <button class="btn-danger" style="width: 100%; padding: 15px; font-size: 15px;" onclick="triggerEndGamePrompt()">🛑 Trigger Game Over & Compile Analytics</button>
+                </div>
+
+                <h2>📜 Event Horizon Log</h2>
+                <div id="master-log">
+                    <div style="text-align:center; padding:30px; color:#8a8a9e; background:#222235; border-radius:12px; border:1px dashed #3d3d5c;">
+                        Awaiting first global round execution...
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-setup" class="tab-view">
+                <h1>👥 Player Roster & Master Ledger</h1>
+                <div class="card">
+                    <div class="card-header">Register Players</div>
+                    <div class="grid-2">
+                        <div class="col" style="width: 70%;">
+                            <input type="text" id="player-name-input" placeholder="Enter player name..." onkeydown="if(event.key === 'Enter') registerPlayer()">
+                        </div>
+                        <div class="col" style="width: 30%;">
+                            <button class="btn-primary" style="width: 100%;" onclick="registerPlayer()">➕ Add Player</button>
+                        </div>
+                    </div>
+                </div>
+                <h2>📊 Financial Dossiers</h2>
+                <div class="player-summary-grid" id="master-ledger-cards"></div>
+            </div>
+
+            <div id="tab-board" class="tab-view">
+                <h1>🗺️ Real Estate & Deed Register</h1>
+                <div class="subtitle">Track ownership, building logs, active dynamic rents, and individual property casualty insurance bindings. Values auto-scale with the economy.</div>
+                <div id="properties-board-container"></div>
+            </div>
+
+            <div id="tab-market" class="tab-view">
+                <h1>📈 Markets & Portfolios</h1>
+                <div class="grid-2">
+                    <div class="col">
+                        <div class="card border-market">
+                            <div class="card-header">🏛️ Stock Index</div>
+                            <div class="metric-container">
+                                <div class="metric-box"><div class="metric-val" id="stock-ticker-val">$100</div></div>
+                            </div>
+                            <table id="stock-trading-table">
+                                <thead><tr><th>Player</th><th>Shares</th><th>Modify</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-crypto">
+                            <div class="card-header">🚀 Crypto Index</div>
+                            <div class="metric-container">
+                                <div class="metric-box"><div class="metric-val" id="crypto-ticker-val">$100</div></div>
+                            </div>
+                            <table id="crypto-trading-table">
+                                <thead><tr><th>Player</th><th>Coins</th><th>Modify</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-economy" class="tab-view">
+                <h1>⚖️ Macroeconomic Cycle</h1>
+                <div class="subtitle">Controlled via Master Button (20% natural shift chance). Rounds to nearest whole dollar values.</div>
+                
+                <div class="card border-economy">
+                    <div class="card-header">Current Economic State</div>
+                    <div class="metric-container">
+                        <div class="metric-box" style="background: #2a2a40;">
+                            <div class="metric-lbl">Pass GO Salary</div>
+                            <div class="metric-val" id="econ-pass-go" style="color: #4CAF50;">$200</div>
+                        </div>
+                        <div class="metric-box" style="background: #2a2a40; margin-left: 10px;">
+                            <div class="metric-lbl">Rent / Cost Modifier</div>
+                            <div class="metric-val" id="econ-modifier">Standard</div>
+                        </div>
+                    </div>
+                    <p style="color:#a0a0b0; font-size:14px; background:#1c1c2b; padding:15px; border-radius:8px;">
+                        <strong>Dynamic Synchronization Engine Active:</strong> Property rent calculations inside the "Board Properties" dashboard automatically scale with the values above.
+                    </p>
+                </div>
+            </div>
+
+            <div id="tab-centralbank" class="tab-view">
+                <h1>🏦 Central Bank Loans</h1>
+                <div class="grid-2">
+                    <div class="col" style="width: 35%;">
+                        <div class="card border-bank">
+                            <div class="card-header">Issue Loan</div>
+                            <div class="form-group"><select id="loan-player-select"></select></div>
+                            <div class="form-group"><input type="number" id="loan-amount-input" value="500" step="50"></div>
+                            <button class="btn-primary" style="width: 100%;" onclick="issueBankLoan()">Disburse Funds</button>
+                        </div>
+                    </div>
+                    <div class="col" style="width: 65%;">
+                        <div class="card">
+                            <div class="card-header">Active Debtors</div>
+                            <table id="loans-ledger-table">
+                                <thead><tr><th>Debtor</th><th>Owes</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="game-over-overlay">
+        <div class="recap-container">
+            <div class="recap-header">
+                <h1 style="color: #4CAF50; font-size: 36px; margin: 0 0 10px 0;">🏆 Financial Audit Report</h1>
+                <p style="color: #8a8a9e; margin: 0; font-size: 16px;">The session has concluded. Final analysis of portfolios, debt indices, and title holdings compiled below.</p>
+            </div>
+
+            <div class="recap-grid" id="analytics-cards-insertion-point">
+                </div>
+
+            <div style="text-align: center; border-top: 2px dashed #3d3d5c; padding-top: 30px;">
+                <p style="color: #8a8a9e; font-size: 13px; margin-bottom: 15px;">Warning: Resetting clear all records, registers, property files, and logs permanently.</p>
+                <button class="btn-danger" style="padding: 16px 32px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(244,67,54,0.4);" onclick="resetEntireSystemPipeline()">🔄 Wipe Board Data & Restart System</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let stockPrice = 100.00;
+        let cryptoPrice = 100.00;
+        let currentEconShift = 0; 
+        let currentPassGo = 200;
+        let roundNumber = 0;
+
+        // SEED VALUE DEED REGISTRY ARCHIVE
+        const defaultPropertiesArray = [
+            { id:"prop_med", name:"Mediterranean Ave", group:"Brown", hex:"#8B4513", type:"street", houses:0, owner:"", insured:false, rentSchedule:[2,10,30,90,160,250] },
+            { id:"prop_bal", name:"Baltic Ave", group:"Brown", hex:"#8B4513", type:"street", houses:0, owner:"", insured:false, rentSchedule:[4,20,60,180,320,450] },
+            { id:"prop_ori", name:"Oriental Ave", group:"Light Blue", hex:"#87CEEB", type:"street", houses:0, owner:"", insured:false, rentSchedule:[6,30,90,270,400,550] },
+            { id:"prop_ver", name:"Vermont Ave", group:"Light Blue", hex:"#87CEEB", type:"street", houses:0, owner:"", insured:false, rentSchedule:[6,30,90,270,400,550] },
+            { id:"prop_con", name:"Connecticut Ave", group:"Light Blue", hex:"#87CEEB", type:"street", houses:0, owner:"", insured:false, rentSchedule:[8,40,100,300,450,600] },
+            { id:"prop_stc", name:"St. Charles Place", group:"Pink", hex:"#FF69B4", type:"street", houses:0, owner:"", insured:false, rentSchedule:[10,50,150,450,625,750] },
+            { id:"prop_sta", name:"States Ave", group:"Pink", hex:"#FF69B4", type:"street", houses:0, owner:"", insured:false, rentSchedule:[10,50,150,450,625,750] },
+            { id:"prop_vir", name:"Virginia Ave", group:"Pink", hex:"#FF69B4", type:"street", houses:0, owner:"", insured:false, rentSchedule:[12,60,180,500,700,900] },
+            { id:"prop_stj", name:"St. James Place", group:"Orange", hex:"#FF9800", type:"street", houses:0, owner:"", insured:false, rentSchedule:[14,70,200,550,750,950] },
+            { id:"prop_ten", name:"Tennessee Ave", group:"Orange", hex:"#FF9800", type:"street", houses:0, owner:"", insured:false, rentSchedule:[14,70,200,550,750,950] },
+            { id:"prop_ny", name:"New York Ave", group:"Orange", hex:"#FF9800", type:"street", houses:0, owner:"", insured:false, rentSchedule:[16,80,220,600,800,1000] },
+            { id:"prop_ken", name:"Kentucky Ave", group:"Red", hex:"#F44336", type:"street", houses:0, owner:"", insured:false, rentSchedule:[18,90,250,700,875,1050] },
+            { id:"prop_ind", name:"Indiana Ave", group:"Red", hex:"#F44336", type:"street", houses:0, owner:"", insured:false, rentSchedule:[18,90,250,700,875,1050] },
+            { id:"prop_ill", name:"Illinois Ave", group:"Red", hex:"#F44336", type:"street", houses:0, owner:"", insured:false, rentSchedule:[20,100,300,750,925,1100] },
+            { id:"prop_atl", name:"Atlantic Ave", group:"Yellow", hex:"#FFEB3B", type:"street", houses:0, owner:"", insured:false, rentSchedule:[22,110,330,800,975,1150] },
+            { id:"prop_ven", name:"Ventnor Ave", group:"Yellow", hex:"#FFEB3B", type:"street", houses:0, owner:"", insured:false, rentSchedule:[22,110,330,800,975,1150] },
+            { id:"prop_mar", name:"Marvin Gardens", group:"Yellow", hex:"#FFEB3B", type:"street", houses:0, owner:"", insured:false, rentSchedule:[24,120,360,850,1025,1200] },
+            { id:"prop_pac", name:"Pacific Ave", group:"Green", hex:"#4CAF50", type:"street", houses:0, owner:"", insured:false, rentSchedule:[26,130,390,900,1100,1275] },
+            { id:"prop_nc", name:"North Carolina Ave", group:"Green", hex:"#4CAF50", type:"street", houses:0, owner:"", insured:false, rentSchedule:[26,130,390,900,1100,1275] },
+            { id:"prop_pa", name:"Pennsylvania Ave", group:"Green", hex:"#4CAF50", type:"street", houses:0, owner:"", insured:false, rentSchedule:[28,150,450,1000,1200,1400] },
+            { id:"prop_pk", name:"Park Place", group:"Dark Blue", hex:"#000080", type:"street", houses:0, owner:"", insured:false, rentSchedule:[35,175,500,1100,1300,1500] },
+            { id:"prop_bw", name:"Boardwalk", group:"Dark Blue", hex:"#000080", type:"street", houses:0, owner:"", insured:false, rentSchedule:[50,200,600,1400,1700,2000] },
+            { id:"prop_rr_reading", name:"Reading Railroad", group:"Railroads", hex:"#2f2f2f", type:"railroad", owner:"", insured:false },
+            { id:"prop_rr_penn", name:"Pennsylvania Railroad", group:"Railroads", hex:"#2f2f2f", type:"railroad", owner:"", insured:false },
+            { id:"prop_rr_bo", name:"B. & O. Railroad", group:"Railroads", hex:"#2f2f2f", type:"railroad", owner:"", insured:false },
+            { id:"prop_rr_short", name:"Short Line Railroad", group:"Railroads", hex:"#2f2f2f", type:"railroad", owner:"", insured:false },
+            { id:"prop_ut_electric", name:"Electric Company", group:"Utilities", hex:"#666", type:"utility", owner:"", insured:false },
+            { id:"prop_ut_water", name:"Water Works", group:"Utilities", hex:"#666", type:"utility", owner:"", insured:false }
+        ];
+
+        let propertyDatabase = JSON.parse(JSON.stringify(defaultPropertiesArray));
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-view').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            const eventMap = { 'tab-master':0, 'tab-setup':1, 'tab-board':2, 'tab-market':3, 'tab-economy':4, 'tab-centralbank':5 };
+            document.querySelectorAll('.nav-item')[eventMap[tabId]].classList.add('active');
+            syncDropdowns();
+        }
+
+        function calculateCurrentRent(prop) {
+            let baseRent = 0;
+            if (prop.type === "street") {
+                baseRent = prop.rentSchedule[prop.houses];
+                if (prop.houses === 0 && prop.owner !== "") {
+                    const groupProps = propertyDatabase.filter(p => p.group === prop.group);
+                    const allOwnedBySame = groupProps.every(p => p.owner === prop.owner);
+                    if (allOwnedBySame) baseRent *= 2;
+                }
+            } else if (prop.type === "railroad") {
+                if (prop.owner === "") return 0;
+                const count = propertyDatabase.filter(p => p.group === "Railroads" && p.owner === prop.owner).length;
+                baseRent = [0, 25, 50, 100, 200][count] || 25;
+            } else if (prop.type === "utility") {
+                if (prop.owner === "") return 0;
+                const count = propertyDatabase.filter(p => p.group === "Utilities" && p.owner === prop.owner).length;
+                return count === 2 ? "10x Dice Roll" : "4x Dice Roll";
+            }
+            let modifiedRent = baseRent * (1 + (currentEconShift / 100));
+            return Math.max(1, Math.round(modifiedRent));
+        }
+
+        function executeMasterRound() {
+            roundNumber++;
+            let logHTML = `<div class="log-entry"><h3>Round ${roundNumber} Summary</h3><ul>`;
+
+            const stockMod = 1 + (Math.random() * 0.25 - 0.10);
+            stockPrice = Math.max(1.00, stockPrice * stockMod);
+            const cryptoMod = 1 + (Math.random() * 1.00 - 0.40);
+            cryptoPrice = Math.max(1.00, cryptoPrice * cryptoMod);
+            logHTML += `<li><strong>📈 Markets:</strong> Stocks hit $${stockPrice.toFixed(0)} | Crypto hit $${cryptoPrice.toFixed(0)}.</li>`;
+
+            if (Math.random() < 0.20) {
+                const shifts = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
+                currentEconShift = shifts[Math.floor(Math.random() * shifts.length)];
+                currentPassGo = 200 + (currentEconShift * 2);
+                
+                if (currentEconShift === 0) {
+                    logHTML += `<li class="alert-econ"><strong>⚖️ Economy Stabilized:</strong> Deeds reset to baseline values. Pass GO pays $200.</li>`;
+                } else {
+                    const sign = currentEconShift > 0 ? '+' : '';
+                    logHTML += `<li class="alert-econ"><strong>⚖️ Economy Shift!</strong> National rents altered by ${sign}${currentEconShift}%. All deed registries re-synced! Pass GO pays $${currentPassGo}.</li>`;
+                }
+            } else {
+                logHTML += `<li><strong>⚖️ Economy:</strong> Stable. Structural yields holding steady.</li>`;
+            }
+
+            if (Math.random() < 0.10) {
+                const disasterPool = [
+                    { name: "🌊 Flash Flood", groups: ["Brown", "Light Blue"] },
+                    { name: "🌋 Earthquake", groups: ["Pink", "Orange"] },
+                    { name: "🌀 Hurricane", groups: ["Red", "Yellow"] },
+                    { name: "🌪️ Tornado Mega-Strike", groups: ["Green", "Dark Blue"] }
+                ];
+                const d = disasterPool[Math.floor(Math.random() * disasterPool.length)];
+                logHTML += `<li class="alert-disaster"><strong>🚨 DISASTER STRIKE:</strong> A devastating ${d.name} swept the board!</li>`;
+                
+                let damageIncurred = false;
+                propertyDatabase.forEach(p => {
+                    if (d.groups.includes(p.group) && p.owner !== "") {
+                        const playerObj = players.find(pl => pl.id === p.owner);
+                        const pName = playerObj ? playerObj.name : "Unknown";
+                        
+                        if (p.insured) {
+                            logHTML += `<li style="color:#00BCD4; margin-left:15px;">🛡️ <em>${p.name}</em> (${pName}) protected by localized asset indemnity policy!</li>`;
+                        } else {
+                            if (p.houses > 0) {
+                                logHTML += `<li style="color:#f44336; margin-left:15px;">💥 <em>${p.name}</em> (${pName}) was UNINSURED! All ${p.houses === 5 ? 'Hotels' : p.houses + ' Houses'} demolished!</li>`;
+                                p.houses = 0;
+                                damageIncurred = true;
+                            }
+                        }
+                    }
+                });
+                if (!damageIncurred) logHTML += `<li style="margin-left:15px; color:#8a8a9e;">No buildings were lost across the target zones.</li>`;
+            }
+
+            let totalPremiums = 0;
+            let premiumBreakdown = [];
+            players.forEach(pl => {
+                const insuredCount = propertyDatabase.filter(p => p.owner === pl.id && p.insured).length;
+                if (insuredCount > 0) {
+                    const cost = insuredCount * 10;
+                    totalPremiums += cost;
+                    premiumBreakdown.push(`${pl.name}: $${cost} (${insuredCount} properties)`);
+                }
+            });
+            if (totalPremiums > 0) {
+                logHTML += `<li style="color:#00BCD4;"><strong>🛡️ Casualty Premium Autopay:</strong> Banker must collect $10 per insured deed. Total: $${totalPremiums} (${premiumBreakdown.join(', ')}).</li>`;
+            }
+
+            let intTotal = 0;
+            players.forEach(p => { if (p.loanPrincipal > 0) intTotal += Math.ceil(p.loanPrincipal * 0.10); });
+            if (intTotal > 0) {
+                logHTML += `<li class="alert-bank"><strong>🏦 Central Bank Debt Interest:</strong> Banker automatic round collection due: $${intTotal}.</li>`;
+            }
+
+            logHTML += `</ul></div>`;
+            const logContainer = document.getElementById('master-log');
+            if (roundNumber === 1) logContainer.innerHTML = '';
+            logContainer.insertAdjacentHTML('afterbegin', logHTML);
+
+            refreshAllViews();
+        }
+
+        // ==========================================
+        // END GAME ANALYTICS COMPILER SYSTEM (NEW)
+        // ==========================================
+        function triggerEndGamePrompt() {
+            if (players.length === 0) {
+                alert("❌ Cannot compile audit logs. No profiles exist inside the active index.");
+                return;
+            }
+            
+            const confirmation = confirm("🏁 Are you absolutely sure you want to end this game session and review final player data analytics?");
+            if (!confirmation) return;
+
+            const insertionPoint = document.getElementById('analytics-cards-insertion-point');
+            insertionPoint.innerHTML = "";
+
+            players.forEach(p => {
+                const investedStocksVal = p.stocks * stockPrice;
+                const investedCryptoVal = p.crypto * cryptoPrice;
+                const totalAssetValue = investedStocksVal + investedCryptoVal;
+                const netWorth = totalAssetValue - p.loanPrincipal;
+                
+                // Fetch property count metrics
+                const propertiesOwned = propertyDatabase.filter(pr => pr.owner === p.id);
+                const propertyCount = propertiesOwned.length;
+                
+                // Profitability analysis logic 
+                const isProfitable = netWorth > 0;
+
+                insertionPoint.innerHTML += `
+                    <div class="recap-card ${isProfitable ? '' : 'negative-yield'}">
+                        <h2 style="margin:0 0 15px 0; font-size:22px; color:#fff;">👤 ${p.name}</h2>
+                        
+                        <div class="summary-row">
+                            <span class="summary-lbl">Liquid Asset Wealth:</span>
+                            <span class="summary-val" style="color:#4CAF50;">$${totalAssetValue.toFixed(0)}</span>
+                        </div>
+                        <div class="summary-row" style="margin-left:10px; font-size:12px;">
+                            <span class="summary-lbl">↳ Stock Equity:</span>
+                            <span class="summary-val">$${investedStocksVal.toFixed(0)} (${p.stocks} shares)</span>
+                        </div>
+                        <div class="summary-row" style="margin-left:10px; font-size:12px;">
+                            <span class="summary-lbl">↳ Crypto Assets:</span>
+                            <span class="summary-val">$${investedCryptoVal.toFixed(0)} (${p.crypto} coins)</span>
+                        </div>
+                        
+                        <div class="summary-row" style="margin-top:10px;">
+                            <span class="summary-lbl">Real Estate Portfolio:</span>
+                            <span class="summary-val" style="color:#FF9800;">${propertyCount} Deeds Owned</span>
+                        </div>
+                        
+                        <div class="summary-row" style="margin-top:10px;">
+                            <span class="summary-lbl">Unpaid Bank Liability:</span>
+                            <span class="summary-val" style="color:#f44336;">-$${p.loanPrincipal}</span>
+                        </div>
+
+                        <div class="summary-row" style="border-top:1px dashed #3d3d5c; margin-top:15px; padding-top:10px;">
+                            <span class="summary-lbl" style="color:#fff; font-size:14px;">Net Worth Outcome:</span>
+                            <span class="summary-val" style="font-size:16px; color:${isProfitable ? '#4CAF50':'#f44336'};">$${netWorth.toFixed(0)}</span>
+                        </div>
+
+                        <div style="margin-top:15px; text-align:center;">
+                            <span class="badge ${isProfitable ? 'badge-green' : 'badge-red'}" style="font-size:12px; padding:6px 14px; width:100%;">
+                                ${isProfitable ? '📈 PROFITABLE METRICS' : '📉 UNPROFITABLE/IN DEBT'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Display overlay dashboard
+            document.getElementById('game-over-overlay').style.display = "block";
+        }
+
+        // RESET PIPELINE FLOW
+        function resetEntireSystemPipeline() {
+            const doubleCheck = confirm("⚠️ CRITICAL RE-VERIFICATION: This clears all properties, stocks, rosters, and histories forever. Proceed?");
+            if (!doubleCheck) return;
+
+            // Reset engine fields completely
+            players = [];
+            stockPrice = 100.00;
+            cryptoPrice = 100.00;
+            currentEconShift = 0;
+            currentPassGo = 200;
+            roundNumber = 0;
+            
+            // Hard copy clean array data deep reset
+            propertyDatabase = JSON.parse(JSON.stringify(defaultPropertiesArray));
+
+            // Purge log entries UI layout elements
+            document.getElementById('master-log').innerHTML = `
+                <div style="text-align:center; padding:30px; color:#8a8a9e; background:#222235; border-radius:12px; border:1px dashed #3d3d5c;">
+                    Awaiting first global round execution...
+                </div>
+            `;
+
+            // Close the report dashboard viewport panel window layer
+            document.getElementById('game-over-overlay').style.display = "none";
+
+            // Return user focus safely back to initialization portal setup index tab
+            switchTab('tab-setup');
+            refreshAllViews();
+        }
+
+        // ==========================================
+        // SUB-SYSTEM CORE IMPLEMENTATIONS
+        // ==========================================
+        function registerPlayer() {
+            const input = document.getElementById('player-name-input');
+            const name = input.value.trim();
+            if (name === "") return;
+            players.push({ id: 'p_' + Date.now(), name: name, stocks: 0, crypto: 0, loanPrincipal: 0 });
+            input.value = "";
+            refreshAllViews();
+        }
+
+        function refreshAllViews() {
+            renderMasterLedger();
+            renderPropertyBoard();
+            renderMarkets();
+            renderEconomyUI();
+            renderBank();
+            syncDropdowns();
+        }
+
+        function syncDropdowns() {
+            const bankSelect = document.getElementById('loan-player-select');
+            let html = players.length === 0 ? '<option value="">No Active Rosters</option>' : '';
+            players.forEach(p => html += `<option value="${p.id}">${p.name}</option>`);
+            if (bankSelect) bankSelect.innerHTML = html;
+        }
+
+        function renderMasterLedger() {
+            const container = document.getElementById('master-ledger-cards');
+            if (!container) return;
+            if (players.length === 0) { container.innerHTML = `<div style="grid-column: 1/-1; padding:20px; color:#8a8a9e;">No players registered. Add profiles to spin up database matrix slots.</div>`; return; }
+
+            container.innerHTML = '';
+            players.forEach(p => {
+                const net = (p.stocks * stockPrice) + (p.crypto * cryptoPrice) - p.loanPrincipal;
+                
+                let propertyTagsHTML = "";
+                const ownedProps = propertyDatabase.filter(pr => pr.owner === p.id);
+                if (ownedProps.length === 0) {
+                    propertyTagsHTML = `<span style="color:#8a8a9e; font-style:italic; font-size:12px;">No titles registered to deed book</span>`;
+                } else {
+                    ownedProps.forEach(pr => {
+                        let buildSymbol = "";
+                        if (pr.type === "street") {
+                            if (pr.houses === 5) buildSymbol = " [🏨]";
+                            else if (pr.houses > 0) buildSymbol = ` [🏡x${pr.houses}]`;
+                        }
+                        const insSymbol = pr.insured ? " 🛡️" : "";
+                        propertyTagsHTML += `<span class="property-tag" style="background-color:${pr.hex};">${pr.name}${buildSymbol}${insSymbol}</span>`;
+                    });
+                }
+
+                container.innerHTML += `
+                    <div class="summary-card">
+                        <div class="summary-header">
+                            <h3 class="summary-title">${p.name}</h3>
+                            <span class="badge ${p.loanPrincipal > 0 ? 'badge-red' : 'badge-green'}">${p.loanPrincipal > 0 ? 'Debtor' : 'Clear'}</span>
+                        </div>
+                        <div class="summary-row"><span class="summary-lbl">Portfolio Stocks:</span> <span class="summary-val">${p.stocks} ($${(p.stocks * stockPrice).toFixed(0)})</span></div>
+                        <div class="summary-row"><span class="summary-lbl">Liquid Crypto Pools:</span> <span class="summary-val">${p.crypto} ($${(p.crypto * cryptoPrice).toFixed(0)})</span></div>
+                        <div class="summary-row"><span class="summary-lbl">Institutional Debt:</span> <span class="summary-val" style="color:#f44336;">-$${p.loanPrincipal}</span></div>
+                        
+                        <div style="margin-top:12px; padding-top:8px; border-top:1px solid #2d2d44;">
+                            <div class="summary-lbl" style="margin-bottom:6px; color:#fff;">Sovereign Real Estate Titles:</div>
+                            <div>${propertyTagsHTML}</div>
+                        </div>
+
+                        <div class="summary-row" style="border-top:1px dashed #3d3d5c; margin-top:12px; padding-top:10px;"><span class="summary-lbl" style="color:#fff;">Net Worth Engine Valuation:</span> <span class="summary-val" style="color:${net>=0?'#4CAF50':'#f44336'};">$${net.toFixed(0)}</span></div>
+                    </div>`;
+            });
+        }
+
+        function renderPropertyBoard() {
+            const container = document.getElementById('properties-board-container');
+            if (!container) return;
+            container.innerHTML = "";
+            const distinctGroups = ["Brown", "Light Blue", "Pink", "Orange", "Red", "Yellow", "Green", "Dark Blue", "Railroads", "Utilities"];
+
+            distinctGroups.forEach(groupName => {
+                const groupProps = propertyDatabase.filter(p => p.group === groupName);
+                let groupHTML = `<div class="property-group-title"><span>🎨 ${groupName} District Set</span></div><div class="property-grid">`;
+
+                groupProps.forEach(prop => {
+                    const dynamicRent = calculateCurrentRent(prop);
+                    let ownerOptions = `<option value="">🚫 Bank Owned</option>`;
+                    players.forEach(pl => {
+                        const selected = prop.owner === pl.id ? "selected" : "";
+                        ownerOptions += `<option value="${pl.id}" ${selected}>👤 ${pl.name}</option>`;
+                    });
+
+                    let houseControlHTML = "";
+                    let visualDots = "";
+                    if (prop.type === "street") {
+                        let houseOptions = "";
+                        const houseLabels = ["0 Buildings", "1 House", "2 Houses", "3 Houses", "4 Houses", "🏨 Hotel"];
+                        for(let i=0; i<=5; i++) {
+                            const hSel = prop.houses === i ? "selected" : "";
+                            houseOptions += `<option value="${i}" ${hSel}>${houseLabels[i]}</option>`;
+                        }
+                        houseControlHTML = `<div style="margin-top:6px;"><label style="font-size:11px; margin-bottom:2px;">Structural Upgrades</label><select class="prop-select" onchange="updatePropertyHouses('${prop.id}', this.value)">${houseOptions}</select></div>`;
+                        
+                        visualDots = `<div class="house-dots">`;
+                        if (prop.houses === 5) { visualDots += `<div class="dot red-ht" title="Hotel Linked"></div>`; } 
+                        else { for(let d=1; d<=4; d++) { visualDots += `<div class="dot ${d <= prop.houses ? 'green-h' : ''}"></div>`; } }
+                        visualDots += `</div>`;
+                    } else {
+                        visualDots = `<div style="font-size:11px; color:#8a8a9e; margin-top:4px;">Fixed Infrastructure Block</div>`;
+                    }
+
+                    groupHTML += `
+                        <div class="prop-card">
+                            <div class="prop-banner" style="background-color:${prop.hex};"></div>
+                            <div class="prop-body">
+                                <div class="prop-name">${prop.name}</div>
+                                <div class="prop-meta"><span>Yielding Rent:</span><strong style="color:#4CAF50; font-size:14px;">${typeof dynamicRent === 'number' ? '$'+dynamicRent : dynamicRent}</strong></div>
+                                <div style="margin-top:6px;"><label style="font-size:11px; margin-bottom:2px;">Title Deed Assignee</label><select class="prop-select" onchange="updatePropertyOwner('${prop.id}', this.value)">${ownerOptions}</select></div>
+                                ${houseControlHTML}
+                                ${visualDots}
+                                <div class="prop-controls"><span>Casualty Pool:</span><button class="prop-insurance-toggle ${prop.insured ? 'active' : ''}" onclick="togglePropertyInsurance('${prop.id}')">${prop.insured ? '🛡️ Insured ($10)' : '⚠️ Lapsed / Cover'}</button></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                groupHTML += `</div>`;
+                container.innerHTML += groupHTML;
+            });
+        }
+
+        function updatePropertyOwner(propId, newOwnerId) {
+            const prop = propertyDatabase.find(p => p.id === propId);
+            if (prop) { prop.owner = newOwnerId; if (newOwnerId === "") prop.insured = false; refreshAllViews(); }
+        }
+
+        document.updatePropertyOwner = updatePropertyOwner;
+
+        function updatePropertyHouses(propId, count) {
+            const prop = propertyDatabase.find(p => p.id === propId);
+            if (prop) { prop.houses = parseInt(count); refreshAllViews(); }
+        }
+
+        document.updatePropertyHouses = updatePropertyHouses;
+
+        function togglePropertyInsurance(propId) {
+            const prop = propertyDatabase.find(p => p.id === propId);
+            if (prop) {
+                if (prop.owner === "") { alert("⚠️ Unowned commercial real estate sitting in Bank accounts cannot carry active casualty cover policies."); return; }
+                prop.insured = !prop.insured; refreshAllViews();
+            }
+        }
+
+        document.togglePropertyInsurance = togglePropertyInsurance;
+
+        function renderMarkets() {
+            document.getElementById('stock-ticker-val').innerText = `$${stockPrice.toFixed(0)}`;
+            document.getElementById('crypto-ticker-val').innerText = `$${cryptoPrice.toFixed(0)}`;
+            const sBody = document.querySelector('#stock-trading-table tbody');
+            const cBody = document.querySelector('#crypto-trading-table tbody');
+            sBody.innerHTML = ''; cBody.innerHTML = '';
+            players.forEach(p => {
+                sBody.innerHTML += `<tr><td>${p.name}</td><td>${p.stocks}</td><td class="text-right flex-actions"><button class="btn-secondary btn-sm" onclick="adjustAsset('${p.id}', 'stocks', -1)">-1</button><button class="btn-primary btn-sm" onclick="adjustAsset('${p.id}', 'stocks', 1)">+1</button></td></tr>`;
+                cBody.innerHTML += `<tr><td>${p.name}</td><td>${p.crypto}</td><td class="text-right flex-actions"><button class="btn-secondary btn-sm" onclick="adjustAsset('${p.id}', 'crypto', -1)">-1</button><button class="btn-primary btn-sm" style="background:#FF9800;" onclick="adjustAsset('${p.id}', 'crypto', 1)">+1</button></td></tr>`;
+            });
+        }
+
+        function adjustAsset(id, type, amount) {
+            const p = players.find(x => x.id === id);
+            if (p && p[type] + amount >= 0) { p[type] += amount; refreshAllViews(); }
+        }
+
+        document.adjustAsset = adjustAsset;
+
+        function renderEconomyUI() {
+            document.getElementById('econ-pass-go').innerText = `$${currentPassGo}`;
+            const modLabel = document.getElementById('econ-modifier');
+            if (currentEconShift === 0) { modLabel.innerText = "Standard"; modLabel.style.color = "#fff"; } 
+            else { modLabel.innerText = `${currentEconShift > 0 ? '+' : ''}${currentEconShift}%`; modLabel.style.color = currentEconShift > 0 ? "#FF9800" : "#f44336"; }
+        }
+
+        function issueBankLoan() {
+            const select = document.getElementById('loan-player-select');
+            const amt = parseInt(document.getElementById('loan-amount-input').value);
+            if (!select.value || isNaN(amt) || amt <= 0) return;
+            const p = players.find(x => x.id === select.value);
+            if (p) { p.loanPrincipal += amt; refreshAllViews(); }
+        }
+
+        function payLoan(id, amt) {
+            const p = players.find(x => x.id === id);
+            if (p) { p.loanPrincipal = Math.max(0, p.loanPrincipal - amt); refreshAllViews(); }
+        }
+
+        document.payLoan = payLoan;
+
+        function renderBank() {
+            const body = document.querySelector('#loans-ledger-table tbody');
+            body.innerHTML = '';
+            players.filter(x => x.loanPrincipal > 0).forEach(p => {
+                body.innerHTML += `<tr><td>${p.name}</td><td style="color:#f44336;">$${p.loanPrincipal}</td><td class="flex-actions"><button class="btn-primary btn-sm" onclick="payLoan('${p.id}', 100)">Repay $100</button><button class="btn-danger btn-sm" onclick="payLoan('${p.id}', ${p.loanPrincipal})">Clear All</button></td></tr>`;
+            });
+        }
+
+        window.onload = refreshAllViews;
+    </script>
+</body>
+</html>
+"""
+
+with open("monopoly_companion_app_v4.html", "w", encoding="utf-8") as file:
+    file.write(html_content)
+print("File version 4 generation complete.")
